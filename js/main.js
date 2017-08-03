@@ -1,19 +1,22 @@
 var chart = c3.generate({
     data: {
         type: 'line',
+        x: 'x',
         columns: [
-            ['2017', 0.63, 0.62, 0.62, 0.71, 0.67, 0.58],
-            ['2016', 0.66, 0.69, 0.73, 0.70, 0.74, 0.69, 0.77, 0.73, 0.64, 0.67, 0.66, 0.60],
-            ['o 2016', 0.69, 0.69, 0.69, 0.69, 0.69, 0.69, 0.69, 0.69, 0.69, 0.69, 0.69, 0.69]
+            ['x', '2017-01-01', '2017-02-01', '2017-03-01', '2017-04-01', '2017-05-01', '2017-06-01', '2017-07-01', '2017-08-01', '2017-09-01', '2017-10-01', '2017-11-01', '2017-12-01'],
+            ['2017', null],
+            ['2016', null],
+            ['o 2016', null],
+            ['o 2017', null],
         ],
         colors: {
             '2017': 'hsl(205, 100%, 40%)',
             '2016': 'hsl(205, 100%, 60%)',
-            'o 2016': 'hsl(28, 100%, 53%)'
+            'o 2016': 'hsl(28, 100%, 60%)'
         },
         classes: {
             '2016': 'line-silent',
-            'o 2016': 'line-silent'
+            'o 2016': 'line-silent',
         },
         labels: {
             format: {
@@ -41,11 +44,47 @@ var chart = c3.generate({
             }
         },
         x: {
-            type: 'category',
+            type: 'timeseries',
             tick: {
+                format: '%B',
                 rotate: 90
             },
-            categories: ['2017-01', '2017-02', '2017-03', '2017-04', '2017-05', '2017-06', '2017-07', '2017-08', '2017-09', '2017-10', '2017-11', '2017-12'],
         }
     }
 });
+
+apiPerformanceUrl = 'http://10.2.254.235:3000/performance';
+lastYear = new URL(apiPerformanceUrl);
+lastYear.searchParams.set('start_date', '2016-01-01')
+lastYear.searchParams.set('end_date', '2016-12-31')
+
+fetch(lastYear)
+.then(data => data.json())
+.then(json => {
+    const performance = json.performance.map(month => month.performance)
+    const average = _.mean(performance);
+    const averages = _.times(12, _.constant(average));
+
+    chart.load({
+        columns: [
+            ['2016', ...performance],
+            ['o 2016', ...averages]
+        ]
+    });
+})
+
+currentYear = new URL(apiPerformanceUrl);
+currentYear.searchParams.set('start_date', '2017-01-01')
+currentYear.searchParams.set('end_date', '2017-12-31')
+
+fetch(currentYear)
+.then(data => data.json())
+.then(json => {
+    const performance = json.performance.map(month => month.performance)
+
+    chart.load({
+        columns: [
+            ['2017', ...performance],
+        ]
+    });
+})
