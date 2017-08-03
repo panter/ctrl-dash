@@ -7,7 +7,6 @@ var chart = c3.generate({
             ['2017', null],
             ['2016', null],
             ['o 2016', null],
-            ['o 2017', null],
         ],
         colors: {
             '2017': 'hsl(205, 100%, 40%)',
@@ -53,38 +52,38 @@ var chart = c3.generate({
     }
 });
 
-apiPerformanceUrl = 'http://10.2.254.235:3000/performance';
-lastYear = new URL(apiPerformanceUrl);
-lastYear.searchParams.set('start_date', '2016-01-01')
-lastYear.searchParams.set('end_date', '2016-12-31')
+apiPerformanceUrl = 'https://api.panter.ch/performance';
 
-fetch(lastYear)
-.then(data => data.json())
-.then(json => {
-    const performance = json.performance.map(month => month.performance)
-    const average = _.mean(performance);
-    const averages = _.times(12, _.constant(average));
+function fetchPerformance(year) {
+    const startDate = new Date(year, 1, 1);
+    const endDate = new Date(year, 12, 31);
+
+    const url = new URL(apiPerformanceUrl);
+    url.searchParams.set('start_date', startDate.toISOString())
+    url.searchParams.set('end_date', endDate.toISOString())
+
+    return fetch(url)
+    .then(data => data.json())
+    .then(json => {
+        return json.performance.map(month => month.performance);
+    })
+}
+
+fetchPerformance(2017).then(performance => {
+    chart.load({
+        columns: [
+            ['2017', ...performance]
+        ]
+    });
+});
+
+fetchPerformance(2016).then(performance => {
+    const averagePerformance = _.times(12, _.constant(_.mean(performance)));
 
     chart.load({
         columns: [
             ['2016', ...performance],
-            ['o 2016', ...averages]
+            ['o 2016', ...averagePerformance]
         ]
     });
-})
-
-currentYear = new URL(apiPerformanceUrl);
-currentYear.searchParams.set('start_date', '2017-01-01')
-currentYear.searchParams.set('end_date', '2017-12-31')
-
-fetch(currentYear)
-.then(data => data.json())
-.then(json => {
-    const performance = json.performance.map(month => month.performance)
-
-    chart.load({
-        columns: [
-            ['2017', ...performance],
-        ]
-    });
-})
+});
