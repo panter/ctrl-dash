@@ -2,14 +2,14 @@ svg g.tick line {
     display: none;
 }
 
-.c3-circles-o-2016 .c3-circle {
+.c3-line {
+    stroke-width: 3px;
+}
+
+.c3-target-line-silent .c3-circle {
     display: none;
 }
 
-.c3-line {
-    stroke-width: 2px;
-}
-
-.c3-line.c3-line-o-2016 {
+.c3-target-line-silent .c3-line {
     stroke-width: 1px;
 }
